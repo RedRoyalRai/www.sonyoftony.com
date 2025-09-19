@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sony of Tony — World Class Video Platform (Demo)</title>
+<style>
+  :root{
+    --bg:#0f0f12; --card:#15151a; --muted:#a6a6a6; --accent:#ff2d2d; --glass:rgba(255,255,255,0.03);
+    --radius:12px; --gap:18px; --shadow: 0 8px 20px rgba(0,0,0,0.6);
+  }
+  [data-theme="light"]{
+    --bg:#f5f6f8; --card:#ffffff; --muted:#666; --glass:rgba(0,0,0,0.04); --accent:#d32f2f;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%; margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:var(--bg); color: #fff; -webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  /* Header */
+  header{display:flex;align-items:center;gap:12px;padding:12px 18px;background:linear-gradient(180deg, rgba(0,0,0,0.2), transparent);position:sticky;top:0;z-index:50}
+  .brand{display:flex;gap:10px;align-items:center;cursor:pointer}
+  .logo{width:42px;height:42px;background:linear-gradient(45deg,var(--accent),#ff7b7b);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff}
+  .brand h1{font-size:18px;margin:0;letter-spacing:0.2px}
+  .search{flex:1;display:flex;justify-content:center}
+  .search input{width:60%;min-width:180px;padding:10px 14px;border-radius:999px;border:none;background:var(--card);color:inherit;outline:none}
+  .header-actions{display:flex;gap:10px;align-items:center}
+  .icon-btn{background:var(--card);padding:8px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,0.02)}
+  .user-pill{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:999px;background:var(--card);cursor:pointer}
+  .user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(45deg,#6b6bff,#8a8aff);display:flex;align-items:center;justify-content:center;font-weight:700}
+
+  /* Layout */
+  .app{display:flex;gap:var(--gap);padding:18px}
+  aside.sidebar{width:260px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:18px;border-radius:14px;height:calc(100vh - 96px);position:sticky;top:76px;overflow:auto}
+  .side-link{display:flex;gap:12px;align-items:center;padding:10px;border-radius:10px;color:var(--muted);cursor:pointer}
+  .side-link.active{background:var(--glass);color:#fff}
+  main.content{flex:1;min-height:80vh}
+  .top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .tabs{display:flex;gap:8px}
+  .tab{padding:8px 12px;border-radius:999px;background:var(--card);cursor:pointer;color:var(--muted)}
+  .tab.active{background:linear-gradient(90deg,var(--accent),#ff8b8b);color:#fff}
+
+  /* Grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+  .video-card{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);transition:transform .18s;display:flex;flex-direction:column}
+  .video-card:hover{transform:translateY(-6px)}
+  .thumb{height:170px;background:linear-gradient(180deg,#333,#111);display:flex;align-items:center;justify-content:center;position:relative}
+  .thumb video{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb .duration{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,0.6);padding:4px 6px;border-radius:6px;font-size:12px}
+  .vmeta{padding:12px}
+  .vmeta h3{font-size:15px;margin:0 0 6px 0}
+  .vmeta p{color:var(--muted);font-size:13px;margin:0}
+
+  /* Upload card */
+  .upload-box{background:var(--card);padding:16px;border-radius:12px;box-shadow:var(--shadow);max-width:720px}
+  .row{display:flex;gap:10px;align-items:center}
+  .field{width:100%;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.02);color:inherit}
+
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:200;display:none}
+  .modal.show{display:flex}
+  .player{background:var(--card);width:min(1000px,96%);max-height:90vh;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+  .player-wrap{display:flex;gap:16px;padding:18px;align-items:flex-start}
+  .player video{width:640px;max-width:100%;height:360px;background:#000;border-radius:8px}
+  .player-details{flex:1}
+  .p-actions{display:flex;gap:8px;margin-top:8px}
+  .btn{background:linear-gradient(90deg,var(--accent),#ff7b7b);padding:8px 12px;border-radius:8px;border:none;color:#fff;cursor:pointer}
+
+  /* Shorts fullscreen */
+  .shorts-view{position:fixed;inset:0;background:#000;display:none;z-index:250;align-items:center;justify-content:center;flex-direction:column}
+  .shorts-view.show{display:flex}
+  .short-video{width:360px;height:640px;background:#000;border-radius:16px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .short-video video{width:100%;height:100%;object-fit:cover}
+  .short-controls{display:flex;gap:10px;align-items:center;margin-top:12px;color:#fff}
+
+  /* Comments */
+  .comments{margin-top:12px;background:rgba(255,255,255,0.02);padding:12px;border-radius:8px}
+  .comment{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.02)}
+  .comment:last-child{border-bottom:none}
+  .cavatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(45deg,#6b6bff,#8a8aff);display:flex;align-items:center;justify-content:center}
+  .ctext{flex:1}
+
+  /* Responsive */
+  @media (max-width:1000px){aside.sidebar{display:none}.search input{width:100%}.player video{height:240px}}
+  @media (max-width:600px){
+    header{padding:10px}
+    .thumb{height:140px}
+    .short-video{width:95%;height:75%}
+  }
+
+  /* tiny helpers */
+  .muted{color:var(--muted)}
+  .flex{display:flex;gap:10px;align-items:center}
+  .pill{padding:6px 10px;border-radius:999px;background:var(--glass)}
+</style>
+</head>
+<body data-theme="dark">
+
+<header>
+  <div class="brand" onclick="go('home')">
+    <div class="logo">SOT</div>
+    <h1>Sony of Tony</h1>
+  </div>
+
+  <div class="search">
+    <input id="searchInput" placeholder="Search videos, channels, shorts..." oninput="applyFilters()" />
+  </div>
+
+  <div class="header-actions">
+    <div class="icon-btn" title="Shorts" onclick="go('shorts')">🎬</div>
+    <div class="icon-btn" title="Upload" onclick="go('upload')">⬆️</div>
+    <div class="icon-btn" title="Notifications" onclick="go('notifications')">🔔<span id="notifBadge" style="margin-left:6px;color:#fff"></span></div>
+    <div class="user-pill" onclick="go('profile')">
+      <div class="user-avatar">T</div>
+      <div class="muted" style="font-size:13px">Tony</div>
+    </div>
+    <div class="icon-btn" id="themeToggle" title="Toggle theme">🌙</div>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-link active" data-page="home" onclick="go('home')">🏠 Home</div>
+    <div class="side-link" data-page="trending" onclick="go('trending')">🔥 Trending</div>
+    <div class="side-link" data-page="shorts" onclick="go('shorts')">🎬 Shorts</div>
+    <div class="side-link" data-page="music" onclick="go('music')">🎵 Music</div>
+    <div class="side-link" data-page="gaming" onclick="go('gaming')">🎮 Gaming</div>
+    <div class="side-link" data-page="news" onclick="go('news')">📰 News</div>
+    <div class="side-link" data-page="playlists" onclick="go('playlists')">📂 Playlists</div>
+    <div class="side-link" data-page="watchlater" onclick="go('watchlater')">🕒 Watch Later</div>
+    <div style="height:14px"></div>
+    <div class="side-link" data-page="upload" onclick="go('upload')">⬆️ Upload</div>
+    <div class="side-link" data-page="notifications" onclick="go('notifications')">🔔 Notifications</div>
+    <div style="height:14px"></div>
+    <div class="side-link" data-page="profile" onclick="go('profile')">👤 Profile</div>
+    <div class="side-link" data-page="settings" onclick="go('settings')">⚙️ Settings</div>
+  </aside>
+
+  <main class="content">
+    <!-- HOME -->
+    <section id="homePage">
+      <div class="top-row">
+        <div>
+          <h2>Home</h2>
+          <div class="muted">Recommended for you</div>
+        </div>
+        <div class="tabs" id="categoryTabs"></div>
+      </div>
+
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px">
+        <div class="upload-box">
+          <div style="font-weight:700;margin-bottom:8px">Quick Upload (demo)</div>
+          <div class="row">
+            <input id="quickTitle" class="field" placeholder="Video title (quick)"/>
+            <button class="btn" onclick="quickUpload()">Upload</button>
+          </div>
+          <div class="muted" style="font-size:13px;margin-top:8px">Tip: Use full Upload page to add thumbnail, tags, privacy.</div>
+        </div>
+
+        <div class="upload-box" style="flex:1">
+          <div style="font-weight:700;margin-bottom:8px">Trending Now</div>
+          <div class="row">
+            <div class="pill">🔥 Top</div>
+            <div class="pill">🎵 Music</div>
+            <div class="pill">🎮 Gaming</div>
+            <div class="pill">📰 News</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="videosGrid" class="grid"></div>
+    </section>
+
+    <!-- TRENDING (same grid but filtered) -->
+    <section id="trendingPage" style="display:none">
+      <div class="top-row">
+        <h2>Trending</h2>
+        <div class="muted">Hot videos & creators</div>
+      </div>
+      <div id="trendingGrid" class="grid"></div>
+    </section>
+
+    <!-- SHORTS -->
+    <section id="shortsPage" style="display:none">
+      <div class="top-row">
+        <h2>Shorts</h2>
+        <div class="muted">Swipe or press next →</div>
+      </div>
+      <div id="shortsGrid" class="grid"></div>
+    </section>
+
+    <!-- UPLOAD PAGE -->
+    <section id="uploadPage" style="display:none">
+      <h2>Upload Video</h2>
+      <div style="height:12px"></div>
+      <div class="upload-box">
+        <input id="uploadFile" type="file" accept="video/*" />
+        <input id="uploadTitle" class="field" placeholder="Title" />
+        <input id="uploadThumb" class="field" type="file" accept="image/*" />
+        <textarea id="uploadDesc" class="field" placeholder="Description" rows="4"></textarea>
+        <input id="uploadTags" class="field" placeholder="Tags (comma separated)" />
+        <select id="uploadCategory" class="field">
+          <option value="General">General</option>
+          <option value="Music">Music</option>
+          <option value="Gaming">Gaming</option>
+          <option value="News">News</option>
+          <option value="Shorts">Shorts</option>
+        </select>
+        <select id="uploadPrivacy" class="field">
+          <option value="Public">Public</option>
+          <option value="Private">Private</option>
+          <option value="Unlisted">Unlisted</option>
+        </select>
+        <div style="display:flex;gap:10px">
+          <button class="btn" onclick="handleUpload()">Upload</button>
+          <button class="icon-btn" onclick="clearUpload()">Clear</button>
+        </div>
+        <div id="uploadMsg" class="muted" style="margin-top:8px"></div>
+      </div>
+    </section>
+
+    <!-- NOTIFICATIONS -->
+    <section id="notificationsPage" style="display:none">
+      <h2>Notifications</h2>
+      <div id="notificationsList"></div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="profilePage" style="display:none">
+      <h2>My Profile</h2>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:12px">
+        <div class="upload-box" style="min-width:260px">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div class="user-avatar" style="width:64px;height:64px">T</div>
+            <div>
+              <div style="font-weight:700">Tony</div>
+              <div class="muted">Content Creator • <span id="subCount">0</span> subscribers</div>
+              <div style="height:8px"></div>
+              <button class="btn" onclick="subscribeToggle()">Subscribe</button>
+            </div>
+          </div>
+        </div>
+        <div class="upload-box" style="flex:1">
+          <h3>Playlists</h3>
+          <div id="playlistsList" class="muted">No playlists yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLAYLISTS watchlater music etc -->
+    <section id="playlistsPage" style="display:none">
+      <h2>Playlists / Watch Later</h2>
+      <div id="miscList" class="grid"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="settingsPage" style="display:none">
+      <h2>Settings</h2>
+      <div class="upload-box">
+        <label><input type="checkbox" id="autoplayToggle" /> Autoplay next video</label>
+        <div style="height:10px"></div>
+        <label>Theme: <select id="themeSelect"><option>dark</option><option>light</option></select></label>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Video Modal -->
+<div id="modal" class="modal">
+  <div class="player" role="dialog" aria-modal="true">
+    <div style="display:flex;align-items:flex-start;gap:16px;padding:12px">
+      <video id="modalVideo" controls controlsList="nodownload"></video>
+      <div class="player-details">
+        <h3 id="modalTitle">Title</h3>
+        <div class="muted" id="modalMeta">by Tony • 0 views</div>
+        <div class="p-actions">
+          <button class="btn" id="likeBtn" onclick="toggleLike()">👍 Like</button>
+          <button class="icon-btn" onclick="saveWatchLater()">🕒 Save</button>
+          <button class="icon-btn" onclick="shareVideo()">🔗 Share</button>
+          <button class="icon-btn" onclick="closeModal()">✖</button>
+        </div>
+
+        <div class="comments" id="commentsSection">
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <input id="commentInput" class="field" placeholder="Add a comment..." />
+            <button class="btn" onclick="postComment()">Comment</button>
+          </div>
+          <div id="commentsList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Shorts fullscreen -->
+<div id="shortsView" class="shorts-view">
+  <div style="width:100%;display:flex;justify-content:center;align-items:center;flex-direction:column">
+    <div class="short-video" id="shortHolder">
+      <!-- video element injected -->
+    </div>
+    <div class="short-controls">
+      <button class="icon-btn" onclick="shortPrev()">◀ Prev</button>
+      <button class="icon-btn" onclick="shortNext()">Next ▶</button>
+      <div class="muted" id="shortIndex"></div>
+      <div style="width:18px"></div>
+      <button class="icon-btn" onclick="closeShorts()">Exit ✖</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Simple client-side engine ---------- */
+const state = {
+  videos: [], // {id,title,desc,tags,category,privacy,views,likes,src,thumb,isShort,uploadedAt}
+  notifications: [],
+  watchLater: [],
+  comments: {}, // id => [{author,text,ts}]
+  subs: 0,
+  liked: new Set(),
+  currentVideo: null,
+  shortsIndex: 0,
+  autoplay: true
+};
+
+const sampleVideos = [
+  // Placeholder entries without actual mp4 — shown as placeholders until user uploads
+  {id:'v-welcome', title:'Welcome to Sony of Tony', desc:'Platform demo', tags:['welcome'], category:'General', privacy:'Public', views:2000000, likes:34000, src:'', thumb:'', isShort:false, uploadedAt: Date.now()-86400000},
+  {id:'v-demo-short', title:'Demo Short — Funny', desc:'Sample short', tags:['funny'], category:'Shorts', privacy:'Public', views:50000, likes:4000, src:'', thumb:'', isShort:true, uploadedAt: Date.now()-3600000},
+  {id:'v-music', title:'Top Music Clip', desc:'Demo music', tags:['music'], category:'Music', privacy:'Public', views:850000, likes:12000, src:'', thumb:'', isShort:false, uploadedAt: Date.now()-3*86400000},
+];
+
+function saveState(){ localStorage.setItem('sot_state', JSON.stringify({
+  videos: state.videos,
+  notifications: state.notifications,
+  watchLater: state.watchLater,
+  comments: state.comments,
+  subs: state.subs,
+  liked: Array.from(state.liked)
+})); updateNotifBadge(); }
+function loadState(){
+  const raw = localStorage.getItem('sot_state');
+  if(raw){ try{
+    const parsed = JSON.parse(raw);
+    state.videos = parsed.videos || [];
+    state.notifications = parsed.notifications || [];
+    state.watchLater = parsed.watchLater || [];
+    state.comments = parsed.comments || {};
+    state.subs = parsed.subs || 0;
+    state.liked = new Set(parsed.liked || []);
+  }catch(e){ console.warn(e) }
+  } else {
+    // seed with samples
+    state.videos = sampleVideos.map(v=>({...v}));
+  }
+}
+loadState();
+
+/* render categories */
+const categories = ['All','General','Music','Gaming','News','Shorts'];
+const categoryTabs = document.getElementById('categoryTabs');
+categories.forEach(c=>{
+  const el = document.createElement('div');
+  el.className='tab'+(c==='All'?' active':'');
+  el.textContent=c;
+  el.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); applyFilters();}
+  categoryTabs.appendChild(el);
+});
+
+/* pages map */
+function hideAll(){ ['homePage','trendingPage','shortsPage','uploadPage','notificationsPage','profilePage','playlistsPage','settingsPage','playlistsPage'].forEach(id=>document.getElementById(id).style.display='none'); document.querySelectorAll('.side-link').forEach(el=>el.classList.remove('active'))}
+function go(page){
+  hideAll(); document.getElementById(page + 'Page' || page).style.display='block';
+  // highlight sidebar
+  const link = document.querySelector(`.side-link[data-page="${page}"]`);
+  if(link) link.classList.add('active');
+  if(page==='home') renderGrid();
+  if(page==='trending') renderTrending();
+  if(page==='shorts') renderShortsGrid();
+  if(page==='notifications') renderNotifications();
+  if(page==='profile') renderProfile();
+  if(page==='playlists') renderMisc();
+  if(page==='settings') renderSettings();
+}
+go('home');
+
+/* apply search & category */
+function applyFilters(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const activeCat = document.querySelector('.tab.active').textContent;
+  const filtered = state.videos.filter(v=>{
+    if(activeCat !== 'All' && v.category !== activeCat) return false;
+    if(q && !(v.title + ' ' + (v.tags||[]).join(' ') + ' ' + (v.desc||'')).toLowerCase().includes(q)) return false;
+    if(v.privacy && v.privacy!=='Public') return false;
+    return true;
+  });
+  renderGrid(filtered);
+}
+
+/* render home grid */
+function renderGrid(list){
+  const grid = document.getElementById('videosGrid');
+  grid.innerHTML='';
+  const arr = list || state.videos.filter(v=>v.privacy!=='Private');
+  arr.sort((a,b)=>b.views - a.views);
+  arr.forEach(v=>{
+    const card = document.createElement('div'); card.className='video-card';
+    const thumb = document.createElement('div'); thumb.className='thumb';
+    // if we have video src show a small video; else placeholder
+    if(v.src){
+      const vid = document.createElement('video'); vid.src=v.src; vid.muted=true; vid.playsInline=true; vid.disablePictureInPicture = true; vid.loop=true; vid.onmouseenter=()=>vid.play(); vid.onmouseleave=()=>vid.pause();
+      thumb.appendChild(vid);
+    } else {
+      thumb.innerHTML = `<div style="color:var(--muted);font-weight:700">${v.title}</div>`;
+    }
+    const duration = document.createElement('div'); duration.className='duration'; duration.textContent = v.isShort ? '0:30' : '0:00';
+    thumb.appendChild(duration);
+    thumb.onclick = ()=>openVideo(v.id);
+    card.appendChild(thumb);
+
+    const meta = document.createElement('div'); meta.className='vmeta';
+    meta.innerHTML = `<h3>${v.title}</h3><p class="muted">by Tony • ${numberWithCommas(v.views)} views • ${timeAgo(v.uploadedAt)}</p>`;
+    card.appendChild(meta);
+    grid.appendChild(card);
+  });
+}
+
+/* trending */
+function renderTrending(){
+  const grid = document.getElementById('trendingGrid'); grid.innerHTML='';
+  const arr = state.videos.slice().sort((a,b)=>b.views - a.views).slice(0,12);
+  arr.forEach(v=>{
+    const card = document.createElement('div'); card.className='video-card';
+    const thumb = document.createElement('div'); thumb.className='thumb';
+    thumb.innerHTML = `<div style="color:var(--muted);font-weight:700">${v.title}</div>`;
+    thumb.onclick = ()=>openVideo(v.id);
+    card.appendChild(thumb);
+    card.innerHTML += `<div class="vmeta"><h3>${v.title}</h3><p class="muted">by Tony • ${numberWithCommas(v.views)} views</p></div>`;
+    grid.appendChild(card);
+  });
+}
+
+/* shorts grid */
+function renderShortsGrid(){
+  const grid = document.getElementById('shortsGrid'); grid.innerHTML='';
+  const arr = state.videos.filter(v=>v.isShort);
+  if(arr.length===0){ grid.innerHTML='<div class="muted">No shorts yet. Upload a short (choose category "Shorts")</div>'; return; }
+  arr.forEach((v,i)=>{
+    const card = document.createElement('div'); card.className='video-card';
+    const thumb = document.createElement('div'); thumb.className='thumb';
+    thumb.innerHTML = `<div style="color:var(--muted);font-weight:700">${v.title}</div>`;
+    thumb.onclick = ()=>openShorts(i);
+    card.appendChild(thumb);
+    card.innerHTML += `<div class="vmeta"><h3>${v.title}</h3><p class="muted">${numberWithCommas(v.views)} views</p></div>`;
+    grid.appendChild(card);
+  });
+}
+
+/* open modal video */
+function openVideo(id){
+  const v = state.videos.find(x=>x.id===id);
+  if(!v) return alert('Video not found');
+  state.currentVideo = v.id;
+  const modal = document.getElementById('modal'); modal.classList.add('show');
+  const vidEl = document.getElementById('modalVideo');
+  vidEl.pause();
+  if(v.src){ vidEl.src = v.src; } else { vidEl.removeAttribute('src'); vidEl.poster=''; vidEl.load(); }
+  document.getElementById('modalTitle').textContent = v.title;
+  document.getElementById('modalMeta').textContent = `by Tony • ${numberWithCommas(v.views)} views`;
+  renderComments(v.id);
+  // increment view
+  v.views = (v.views||0) + 1;
+  saveState(); renderGrid();
+}
+
+/* close modal */
+function closeModal(){
+  const modal = document.getElementById('modal'); modal.classList.remove('show');
+  const vidEl = document.getElementById('modalVideo'); vidEl.pause(); vidEl.src='';
+}
+
+/* comments */
+function postComment(){
+  const text = document.getElementById('commentInput').value.trim(); if(!text) return;
+  const id = state.currentVideo;
+  if(!state.comments[id]) state.comments[id]=[];
+  state.comments[id].unshift({author:'Tony', text, ts:Date.now()});
+  document.getElementById('commentInput').value='';
+  saveState();
+  renderComments(id);
+  addNotification(`New comment on "${getVideoById(id).title}"`);
+}
+function renderComments(id){
+  const list = document.getElementById('commentsList'); list.innerHTML='';
+  const arr = state.comments[id] || [];
+  arr.forEach(c=>{
+    const el = document.createElement('div'); el.className='comment';
+    el.innerHTML = `<div class="cavatar">T</div><div class="ctext"><div style="font-weight:700">${c.author}</div><div class="muted">${timeAgo(c.ts)}</div><div style="height:6px"></div><div>${escapeHtml(c.text)}</div></div>`;
+    list.appendChild(el);
+  });
+}
+
+/* like toggle */
+function toggleLike(){
+  const id = state.currentVideo; if(!id) return;
+  if(state.liked.has(id)){ state.liked.delete(id); } else { state.liked.add(id); }
+  saveState();
+  document.getElementById('likeBtn').textContent = state.liked.has(id)?'👍 Liked':'👍 Like';
+}
+
+/* watch later */
+function saveWatchLater(){
+  const id = state.currentVideo; if(!id) return;
+  if(!state.watchLater.includes(id)){ state.watchLater.push(id); addNotification('Saved to Watch Later'); saveState(); }
+}
+
+/* share */
+function shareVideo(){ navigator.clipboard?.writeText(location.href + '#video=' + state.currentVideo).then(()=>alert('Link copied')) }
+
+/* upload handling */
+function handleUpload(){
+  const file = document.getElementById('uploadFile').files[0];
+  const thumbFile = document.getElementById('uploadThumb').files[0];
+  const title = document.getElementById('uploadTitle').value.trim() || 'Untitled';
+  const desc = document.getElementById('uploadDesc').value || '';
+  const tags = (document.getElementById('uploadTags').value||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const category = document.getElementById('uploadCategory').value;
+  const privacy = document.getElementById('uploadPrivacy').value;
+  if(!file){ document.getElementById('uploadMsg').textContent = 'Select a video file first.'; return; }
+  const id = 'v-' + Math.random().toString(36).slice(2,9);
+  const src = URL.createObjectURL(file);
+  let thumb = '';
+  if(thumbFile){
+    thumb = URL.createObjectURL(thumbFile);
+  }
+  const vobj = {id,title,desc,tags,category,privacy,views:0,likes:0,src,thumb,isShort:category==='Shorts',uploadedAt:Date.now()};
+  state.videos.unshift(vobj);
+  saveState();
+  document.getElementById('uploadMsg').textContent = 'Uploaded (demo). Video added to your library.';
+  renderGrid(); addNotification(`Your video "${title}" is uploaded.`);
+  // clear
+  setTimeout(()=>{ document.getElementById('uploadMsg').textContent=''; },3000);
+}
+
+function quickUpload(){
+  const t = document.getElementById('quickTitle').value.trim(); if(!t) return alert('Enter title');
+  const id = 'v-' + Math.random().toString(36).slice(2,9);
+  const vobj = {id,title:t,desc:'Quick upload',tags:[],category:'General',privacy:'Public',views: Math.floor(Math.random()*10000),likes:0,src:'',thumb:'',isShort:false,uploadedAt:Date.now()};
+  state.videos.unshift(vobj); saveState(); renderGrid(); addNotification(`Quick upload: ${t}`);
+  document.getElementById('quickTitle').value='';
+}
+
+/* clear upload form */
+function clearUpload(){ ['uploadFile','uploadTitle','uploadThumb','uploadDesc','uploadTags'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); document.getElementById('uploadMsg').textContent='Cleared.'; setTimeout(()=>document.getElementById('uploadMsg').textContent='',2000) }
+
+/* notifications */
+function addNotification(text){
+  state.notifications.unshift({text,ts:Date.now()});
+  if(state.notifications.length>50) state.notifications.pop();
+  saveState();
+}
+function renderNotifications(){
+  const list = document.getElementById('notificationsList'); list.innerHTML='';
+  if(state.notifications.length===0) list.innerHTML='<div class="muted">No notifications</div>';
+  state.notifications.forEach(n=>{
+    const el = document.createElement('div'); el.className='notification'; el.style.background='var(--card)'; el.style.padding='10px'; el.style.borderRadius='8px'; el.style.marginBottom='8px';
+    el.innerHTML = `<div style="font-weight:600">${escapeHtml(n.text)}</div><div class="muted" style="font-size:12px">${timeAgo(n.ts)}</div>`;
+    list.appendChild(el);
+  });
+}
+
+/* profile */
+function renderProfile(){
+  document.getElementById('subCount').textContent = numberWithCommas(state.subs);
+  const pl = document.getElementById('playlistsList');
+  pl.textContent = state.videos.length ? `${state.videos.length} videos uploaded` : 'No videos yet.';
+}
+
+/* playlists / watch later */
+function renderMisc(){
+  const el = document.getElementById('miscList'); el.innerHTML='';
+  if(state.watchLater.length===0){ el.innerHTML='<div class="muted">No items in Watch Later</div>'; return; }
+  state.watchLater.forEach(id=>{
+    const v = getVideoById(id);
+    if(v){ const card=document.createElement('div'); card.className='video-card'; card.innerHTML=`<div class="thumb" onclick="openVideo('${v.id}')"><div style="color:var(--muted);font-weight:700">${v.title}</div></div><div class="vmeta"><h3>${v.title}</h3><p class="muted">${numberWithCommas(v.views)} views</p></div>`; el.appendChild(card) }
+  });
+}
+
+/* settings */
+function renderSettings(){
+  document.getElementById('autoplayToggle').checked = state.autoplay;
+  document.getElementById('themeSelect').value = document.body.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+}
+
+/* subscribe */
+function subscribeToggle(){
+  state.subs = state.subs + 1;
+  addNotification('New subscriber!'); saveState(); renderProfile();
+}
+
+/* helper get by id */
+function getVideoById(id){ return state.videos.find(v=>v.id===id) }
+
+/* small utils */
+function numberWithCommas(x){ if(!x && x!==0) return '0'; return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+function timeAgo(ts){ if(!ts) return 'some time ago'; const s = Math.floor((Date.now()-ts)/1000); if(s<60) return `${s}s ago`; if(s<3600) return `${Math.floor(s/60)}m ago`; if(s<86400) return `${Math.floor(s/3600)}h ago`; return `${Math.floor(s/86400)}d ago`; }
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+/* open shorts */
+function openShorts(index){
+  state.shortsIndex = index;
+  showShort();
+}
+function showShort(){
+  const shorts = state.videos.filter(v=>v.isShort);
+  if(shorts.length===0) return alert('No shorts');
+  const v = shorts[state.shortsIndex % shorts.length];
+  const holder = document.getElementById('shortHolder'); holder.innerHTML = '';
+  const video = document.createElement('video'); video.src = v.src || ''; video.autoplay=true; video.muted=false; video.controls=true; video.loop=false;
+  video.onended = ()=>{ if(state.autoplay) shortNext(); }
+  holder.appendChild(video);
+  document.getElementById('shortIndex').textContent = `${state.shortsIndex+1}/${shorts.length} • ${v.title}`;
+  document.getElementById('shortsView').classList.add('show');
+}
+function shortNext(){ state.shortsIndex++; showShort(); }
+function shortPrev(){ state.shortsIndex = Math.max(0, state.shortsIndex-1); showShort(); }
+function closeShorts(){ document.getElementById('shortsView').classList.remove('show'); const holder=document.getElementById('shortHolder'); holder.innerHTML=''; }
+
+/* open from grid by index */
+function openShortsById(id){
+  const idxAll = state.videos.filter(v=>v.isShort);
+  const idx = idxAll.findIndex(v=>v.id===id);
+  if(idx>=0){ state.shortsIndex=idx; showShort(); }
+}
+
+/* theme toggle */
+document.getElementById('themeToggle').addEventListener('click',()=>{
+  const body = document.body; const t = body.getAttribute('data-theme') === 'light' ? 'dark' : 'light'; body.setAttribute('data-theme', t); document.getElementById('themeToggle').textContent = t==='light' ? '☀️' : '🌙';
+});
+
+/* apply theme select */
+document.getElementById('themeSelect').addEventListener('change', (e)=>{ document.body.setAttribute('data-theme', e.target.value); });
+
+/* search filter on typing */
+document.getElementById('searchInput').addEventListener('keydown', e=>{ if(e.key==='Enter') applyFilters(); });
+
+/* modal close on click outside */
+document.getElementById('modal').addEventListener('click', (ev)=>{ if(ev.target.id==='modal') closeModal(); });
+
+/* notifications badge */
+function updateNotifBadge(){
+  const badge = document.getElementById('notifBadge');
+  const cnt = state.notifications.length;
+  badge.textContent = cnt ? ` (${cnt})` : '';
+}
+updateNotifBadge();
+
+/* initial render */
+renderGrid();
+renderTrending();
+renderShortsGrid();
+renderNotifications();
+renderProfile();
+renderMisc();
+
+/* persist periodically */
+setInterval(saveState, 3000);
+
+/* handle quick URL hash for video open */
+window.addEventListener('load', ()=>{
+  const hash = location.hash;
+  if(hash.startsWith('#video=')){ const id = hash.split('=')[1]; if(id) openVideo(id.replace('#','')); }
+});
+
+/* keyboard shortcuts */
+window.addEventListener('keydown', (e)=>{
+  if(e.key==='k') { // toggle pause on modal video
+    const v = document.getElementById('modalVideo'); if(v && v.src) { v.paused ? v.play() : v.pause(); }
+  }
+  if(e.key==='/' ){ document.getElementById('searchInput').focus(); e.preventDefault(); }
+});
+
+/* add saved notification count on load */
+updateNotifBadge();
+</script>
+</body>
+</html>
